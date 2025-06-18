@@ -24,52 +24,97 @@ This RAG framework processes documents through a multi-stage pipeline:
 
 ## Project Structure
 
-- `main.py`: Command-line interface for the pipeline
-- `rag_pipeline/`: Core pipeline components
-  - `document_processor.py`: Handles document loading, conversion, and chunking
-  - `vector_store.py`: FAISS-based vector storage and retrieval
-  - `reranker.py`: Implements the Voyage AI reranker
-  - `llm_utils.py`: LLM-based components for query understanding and response generation
-  - `pipeline.py`: Main pipeline orchestration
-  - `config.py`: Configuration parameters
+- `main.py`: The command-line interface for running the pipeline. You can use this to process documents, run queries, and enter interactive mode.
 
-## Setup and Usage
+### Pipeline Stages
+
+The RD-RAG pipeline consists of the following stages:
+
+1.  **Document Processing**: Documents in the `documents` directory are loaded, converted to Markdown (if they are PDFs), and split into manageable chunks.
+2.  **Rationale Extraction**: When a query is received, the pipeline first uses an LLM to extract the key rationales or intents behind the query.
+3.  **Subquery Generation**: Based on the extracted rationales, multiple subqueries are generated to cover different aspects of the information need.
+4.  **Initial Retrieval**: For each subquery, a set of relevant documents is retrieved from a FAISS vector store.
+5.  **Reranking**: The retrieved documents are reranked using VoyageAI's cross-encoder to improve relevance.
+6.  **Response Generation**: The final set of reranked documents is passed to an LLM along with the original query to generate a comprehensive answer.
+
+### Other RAG Implementations
+
+This project also includes two other RAG implementations for comparison:
+
+*   **Simple RAG**: A basic RAG pipeline that retrieves documents and sends them directly to the LLM.
+*   **RAG with Reranker**: A pipeline that includes a reranking step but does not use rationale extraction or subquery generation.
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- An environment with the required packages (see `requirements.txt`)
+- API keys for OpenAI and VoyageAI, set as environment variables:
+  - `OPENAI_API_KEY`
+  - `VOYAGE_API_KEY`
 
 ### Installation
 
-```bash
-git clone https://github.com/Quantum-369/RD-RAG.git
-cd RD-RAG
-pip install -r requirements.txt
-```
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd RD-RAG
+    ```
+2.  Install the required packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Environment Variables
+### Usage
 
-Set your OpenAI and Voyage AI API keys:
+The `main.py` script provides a command-line interface for interacting with the RAG pipelines.
 
-```bash
-# For Windows PowerShell
-$env:OPENAI_API_KEY='your-openai-api-key'
-$env:VOYAGE_API_KEY='your-voyage-api-key'
-```
+#### Processing Documents
 
-### Running the Pipeline
+To process the documents in the `documents` directory and create the FAISS index, run:
 
-Process all documents in a directory:
 ```bash
 python main.py
 ```
 
-Process a single document:
-```bash
-python main.py --file_name "HISTORY-ENGLISH.pdf"
-```
+You can force the reprocessing of documents by using the `--reinitialize` flag:
 
-Reinitialize the vector index:
 ```bash
 python main.py --reinitialize
 ```
 
-## Requirements
+#### Running a Query
 
-See `requirements.txt` for the full list of dependencies.
+You can run a single query from the command line:
+
+```bash
+python main.py --query "Your query here"
+```
+
+By default, this will use the RD-RAG pipeline. You can select a different pipeline using the `--pipeline` argument:
+
+```bash
+python main.py --pipeline simple --query "Your query here"
+python main.py --pipeline reranker --query "Your query here"
+```
+
+#### Interactive Mode
+
+To enter interactive mode, run `main.py` without a query:
+
+```bash
+python main.py
+```
+
+You can then enter queries at the prompt. Type `exit` to quit.
+
+## Configuration
+
+The configuration for each pipeline is located in its respective directory:
+
+- `rag_pipeline/config.py`
+- `simple_rag/config.py`
+- `rag_with_reranker/config.py`
+
+These files contain parameters for document processing, retrieval, and LLM settings.
