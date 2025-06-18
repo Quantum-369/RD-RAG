@@ -1,0 +1,11 @@
+openai
+langchain
+langchain_community
+sentence-transformers
+faiss-cpu
+torch
+numpy
+tiktoken
+requests
+voyageai
+pypdf
